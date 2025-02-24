@@ -1,0 +1,46 @@
+- name: Install elevate-release package
+  ansible.builtin.yum:
+    name: http://repo.almalinux.org/elevate/elevate-release-latest-el$(rpm --eval %rhel).noarch.rpm
+    state: present
+
+- name: Install leapp packages
+  ansible.builtin.yum:
+    name:
+      - leapp-upgrade
+      - leapp-data-almalinux
+    state: present
+
+- name: Run pre-upgrade check
+  ansible.builtin.command:
+    cmd: leapp preupgrade
+
+- name: Update firewalld configuration
+  ansible.builtin.lineinfile:
+    path: /etc/firewalld/firewalld.conf
+    regexp: '^AllowZoneDrifting='
+    line: 'AllowZoneDrifting=no'
+
+- name: Answer leapp questions
+  ansible.builtin.command:
+    cmd: leapp answer --section check_vdo.confirm=True
+
+- name: Perform Leapp upgrade
+  ansible.builtin.command:
+    cmd: leapp upgrade
+
+- name: Reboot after upgrade
+  ansible.builtin.reboot:
+
+- name: Verify the upgrade
+  ansible.builtin.command:
+    cmd: "{{ item }}"
+  loop:
+    - cat /etc/redhat-release
+    - cat /etc/os-release
+    - rpm -qa | grep el8
+    - cat /var/log/leapp/leapp-report.txt
+    - cat /var/log/leapp/leapp-upgrade.log
+
+- name: Update the system and remove outdated packages
+  ansible.builtin.command:
+    cmd: dnf update --allowerasing

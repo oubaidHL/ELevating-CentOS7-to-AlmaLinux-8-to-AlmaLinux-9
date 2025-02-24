@@ -1,0 +1,5 @@
+- name: Upgrade CentOS 7 to AlmaLinux 8
+  hosts: all
+  become: yes
+  roles:
+    - elevate_centos7_to_8

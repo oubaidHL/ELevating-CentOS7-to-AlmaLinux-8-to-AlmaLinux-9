@@ -1,0 +1,74 @@
+- name: Update CentOS 7 repository
+  ansible.builtin.get_url:
+    url: https://el7.repo.almalinux.org/centos/CentOS-Base.repo
+    dest: /etc/yum.repos.d/CentOS-Base.repo
+
+- name: Upgrade all packages
+  ansible.builtin.yum:
+    name: '*'
+    state: latest
+
+- name: Reboot the machine
+  ansible.builtin.reboot:
+
+- name: Install elevate-release package
+  ansible.builtin.yum:
+    name: http://repo.almalinux.org/elevate/elevate-release-latest-el$(rpm --eval %rhel).noarch.rpm
+    state: present
+
+- name: Install leapp packages
+  ansible.builtin.yum:
+    name:
+      - leapp-upgrade
+      - leapp-data-almalinux
+    state: present
+
+- name: Confirm leapp upgrade questions
+  ansible.builtin.lineinfile:
+    path: /var/log/leapp/answerfile
+    line: "confirm = True"
+    create: yes
+
+- name: Set LEAPP_OVL_SIZE environment variable
+  ansible.builtin.shell: export LEAPP_OVL_SIZE=3000
+
+- name: Answer leapp questions
+  ansible.builtin.command:
+    cmd: leapp answer --section remove_pam_pkcs11_module_check.confirm=True
+
+- name: Answer leapp questions
+  ansible.builtin.command:
+    cmd: leapp answer --section authselect_check.confirm=True
+
+- name: Unload kernel modules
+  ansible.builtin.command:
+    cmd: rmmod {{ item }}
+  loop:
+    - floppy
+    - pata_acpi
+    - mptspi
+    - mptscsih
+    - mptbasepass
+
+- name: Allow root login via SSH
+  ansible.builtin.lineinfile:
+    path: /etc/ssh/sshd_config
+    line: "PermitRootLogin yes"
+    state: present
+
+- name: Backup package list
+  ansible.builtin.command:
+    cmd: rpm -qa > /backup/installed_packages.txt
+
+- name: Backup repository configuration
+  ansible.builtin.copy:
+    src: /etc/yum.repos.d/
+    dest: /backup/
+    remote_src: yes
+
+- name: Perform Leapp upgrade
+  ansible.builtin.command:
+    cmd: leapp upgrade
+
+- name: Reboot after upgrade
+  ansible.builtin.reboot:
