@@ -1,0 +1,51 @@
+version: '3.8'
+
+services:
+    pg-semaphore:
+        image: postgres
+        environment:
+            POSTGRES_USER: semaphore
+            POSTGRES_PASSWORD: pgpassword
+            POSTGRES_DB: semaphore-db
+        volumes:
+            - semaphore_postgres:/var/lib/postgresql/data
+        networks:
+            - semaphore_network
+
+    semaphore:
+        ports:
+            - 3001:3000
+        image: semaphoreui/semaphore:v2.10.35
+        environment:
+            SEMAPHORE_DB_DIALECT: postgres
+            SEMAPHORE_DB_HOST: pg-semaphore
+            SEMAPHORE_DB_NAME: semaphore-db
+            SEMAPHORE_DB_USER: semaphore
+            SEMAPHORE_DB_PASS: pgpassword
+            SEMAPHORE_ADMIN: admin
+            SEMAPHORE_ADMIN_PASSWORD: adminadmin
+            SEMAPHORE_ADMIN_NAME: admin
+            SEMAPHORE_ADMIN_EMAIL: admin@mydomaine.fr
+            SEMAPHORE_EMAIL_ALERT: 'true'
+            SEMAPHORE_EMAIL_SENDER: admin@mydomaine.fr
+            SEMAPHORE_EMAIL_HOST: my.smtp.fr
+            SEMAPHORE_EMAIL_PORT: 465
+            SEMAPHORE_EMAIL_USERNAME: admin@mydomaine.fr
+            SEMAPHORE_EMAIL_PASSWORD: mail-password
+            SEMAPHORE_EMAIL_SECURE: 'true'
+        volumes:
+            - semaphore_data:/var/lib/semaphore
+            - semaphore_config:/etc/semaphore
+        networks:
+            - semaphore_network
+        extra_hosts:
+            - "host.docker.internal:host-gateway"  # Allows access to host network
+
+volumes:
+    semaphore_data:
+    semaphore_config:
+    semaphore_postgres:
+
+networks:
+    semaphore_network:
+        driver: bridge

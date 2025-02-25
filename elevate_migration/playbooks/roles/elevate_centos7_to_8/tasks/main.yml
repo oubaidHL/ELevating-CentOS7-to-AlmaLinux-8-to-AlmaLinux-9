@@ -1,3 +1,8 @@
+- name: Set PYTHONPATH
+  environment:
+    PYTHONPATH: "/usr/local/lib/python3.11"
+
+
 - name: Update CentOS 7 repository
   ansible.builtin.get_url:
     url: https://el7.repo.almalinux.org/centos/CentOS-Base.repo
