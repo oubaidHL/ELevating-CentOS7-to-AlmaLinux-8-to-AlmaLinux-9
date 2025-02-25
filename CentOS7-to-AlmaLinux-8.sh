@@ -1,8 +1,13 @@
 #Update the system to get the latest updates and reboot your machine. NOTE: Since the CentOS 7 repositories are now offline you will need to swap to the CentOS vault, or you can use our CentOS 7 mirror that we've setup for use with ELevate:
 
 sudo curl -o /etc/yum.repos.d/CentOS-Base.repo https://el7.repo.almalinux.org/centos/CentOS-Base.repo
+sudo sed -i 's/^SELINUX=.*/SELINUX=disabled/' /etc/selinux/config
+sudo systemctl disable firewalld
+sudo systemctl stop firewalld
 sudo yum upgrade -y
 sudo reboot
+
+
 
 #Install elevate-release package with the project repo and GPG key.
 
