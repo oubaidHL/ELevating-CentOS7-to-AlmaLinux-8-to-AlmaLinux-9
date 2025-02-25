@@ -1,0 +1,5 @@
+- name: Preparing the env
+  hosts: all
+  become: yes
+  roles:
+    - Env-Settings

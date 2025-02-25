@@ -1,0 +1,34 @@
+- name: Prepare Machines for Python 3.11.11 Installation
+  hosts: all
+  become: yes
+  tasks:
+    - name: Install required packages
+      yum:
+        name:
+          - openssl-devel
+          - bzip2-devel
+          - libffi-devel
+          - wget
+          - "@Development Tools"
+        state: present
+
+    - name: Download Python 3.11.11
+      get_url:
+        url: https://www.python.org/ftp/python/3.11.11/Python-3.11.11.tar.xz
+        dest: /usr/src/Python-3.11.11.tar.xz
+
+    - name: Extract Python 3.11.11
+      unarchive:
+        src: /usr/src/Python-3.11.11.tar.xz
+        dest: /usr/src/
+        remote_src: yes
+
+    - name: Configure Python 3.11.11
+      command: ./configure --enable-optimizations
+      args:
+        chdir: /usr/src/Python-3.11.11
+
+    - name: Build and install Python 3.11.11
+      command: make altinstall
+      args:
+        chdir: /usr/src/Python-3.11.11
